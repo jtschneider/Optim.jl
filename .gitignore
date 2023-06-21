@@ -8,3 +8,5 @@ docs/src/examples/generated
 docs/src/LICENSE.md
 /docs/Manifest.toml
 Manifest.toml
+.vscode
+
