@@ -3,63 +3,88 @@ minimizer(r::OptimizationResults) = r.minimizer
 minimum(r::OptimizationResults) = r.minimum
 iterations(r::OptimizationResults) = r.iterations
 iteration_limit_reached(r::OptimizationResults) = r.iteration_converged
-trace(r::OptimizationResults) = length(r.trace) > 0 ? r.trace : error("No trace in optimization results. To get a trace, run optimize() with store_trace = true.")
+trace(r::OptimizationResults) =
+  length(r.trace) > 0 ? r.trace :
+  error("No trace in optimization results. To get a trace, run optimize() with store_trace = true.")
 
 function x_trace(r::UnivariateOptimizationResults)
-    tr = trace(r)
-    !haskey(tr[1].metadata, "minimizer") && error("Trace does not contain x. To get a trace of x, run optimize() with extended_trace = true")
-    [ state.metadata["minimizer"] for state in tr ]
+  tr = trace(r)
+  !haskey(tr[1].metadata, "minimizer") &&
+    error("Trace does not contain x. To get a trace of x, run optimize() with extended_trace = true")
+  return [state.metadata["minimizer"] for state in tr]
 end
 function x_lower_trace(r::UnivariateOptimizationResults)
-    tr = trace(r)
-    !haskey(tr[1].metadata, "x_lower") && error("Trace does not contain x. To get a trace of x, run optimize() with extended_trace = true")
-    [ state.metadata["x_lower"] for state in tr ]
+  tr = trace(r)
+  !haskey(tr[1].metadata, "x_lower") &&
+    error("Trace does not contain x. To get a trace of x, run optimize() with extended_trace = true")
+  return [state.metadata["x_lower"] for state in tr]
 end
 x_lower_trace(r::MultivariateOptimizationResults) = error("x_lower_trace is not implemented for $(summary(r)).")
 function x_upper_trace(r::UnivariateOptimizationResults)
-    tr = trace(r)
-    !haskey(tr[1].metadata, "x_upper") && error("Trace does not contain x. To get a trace of x, run optimize() with extended_trace = true")
-    [ state.metadata["x_upper"] for state in tr ]
+  tr = trace(r)
+  !haskey(tr[1].metadata, "x_upper") &&
+    error("Trace does not contain x. To get a trace of x, run optimize() with extended_trace = true")
+  return [state.metadata["x_upper"] for state in tr]
 end
 x_upper_trace(r::MultivariateOptimizationResults) = error("x_upper_trace is not implemented for $(summary(r)).")
 
 function x_trace(r::MultivariateOptimizationResults)
-    tr = trace(r)
-    if isa(r.method, NelderMead)
-        throw(ArgumentError("Nelder Mead does not operate with a single x. Please use either centroid_trace(...) or simplex_trace(...) to extract the relevant points from the trace."))
-    end
-    !haskey(tr[1].metadata, "x") && error("Trace does not contain x. To get a trace of x, run optimize() with extended_trace = true")
-    [ state.metadata["x"] for state in tr ]
+  tr = trace(r)
+  if isa(r.method, NelderMead)
+    throw(
+      ArgumentError(
+        "Nelder Mead does not operate with a single x. Please use either centroid_trace(...) or simplex_trace(...) to extract the relevant points from the trace."
+      )
+    )
+  end
+  !haskey(tr[1].metadata, "x") &&
+    error("Trace does not contain x. To get a trace of x, run optimize() with extended_trace = true")
+  return [state.metadata["x"] for state in tr]
 end
 
 function centroid_trace(r::MultivariateOptimizationResults)
-    tr = trace(r)
-    if !isa(r.method, NelderMead)
-        throw(ArgumentError("There is no centroid involved in optimization using $(r.method). Please use x_trace(...) to grab the points from the trace."))
-    end
-    !haskey(tr[1].metadata, "centroid") && error("Trace does not contain centroid. To get a trace of the centroid, run optimize() with extended_trace = true")
-    [ state.metadata["centroid"] for state in tr ]
+  tr = trace(r)
+  if !isa(r.method, NelderMead)
+    throw(
+      ArgumentError(
+        "There is no centroid involved in optimization using $(r.method). Please use x_trace(...) to grab the points from the trace."
+      )
+    )
+  end
+  !haskey(tr[1].metadata, "centroid") &&
+    error("Trace does not contain centroid. To get a trace of the centroid, run optimize() with extended_trace = true")
+  return [state.metadata["centroid"] for state in tr]
 end
 function simplex_trace(r::MultivariateOptimizationResults)
-    tr = trace(r)
-    if !isa(r.method, NelderMead)
-        throw(ArgumentError("There is no simplex involved in optimization using $(r.method). Please use x_trace(...) to grab the points from the trace."))
-    end
-    !haskey(tr[1].metadata, "simplex") && error("Trace does not contain simplex. To get a trace of the simplex, run optimize() with trace_simplex = true")
-    [ state.metadata["simplex"] for state in tr ]
+  tr = trace(r)
+  if !isa(r.method, NelderMead)
+    throw(
+      ArgumentError(
+        "There is no simplex involved in optimization using $(r.method). Please use x_trace(...) to grab the points from the trace."
+      )
+    )
+  end
+  !haskey(tr[1].metadata, "simplex") &&
+    error("Trace does not contain simplex. To get a trace of the simplex, run optimize() with trace_simplex = true")
+  return [state.metadata["simplex"] for state in tr]
 end
 function simplex_value_trace(r::MultivariateOptimizationResults)
-    if !isa(r.method, NelderMead)
-        throw(ArgumentError("There are no simplex values involved in optimization using $(r.method). Please use f_trace(...) to grab the objective values from the trace."))
-    end
-    !haskey(tr[1].metadata, "simplex_values") && error("Trace does not contain objective values at the simplex. To get a trace of the simplex values, run optimize() with trace_simplex = true")
-    [ state.metadata["simplex_values"] for state in tr ]
+  if !isa(r.method, NelderMead)
+    throw(
+      ArgumentError(
+        "There are no simplex values involved in optimization using $(r.method). Please use f_trace(...) to grab the objective values from the trace."
+      )
+    )
+  end
+  !haskey(tr[1].metadata, "simplex_values") && error(
+    "Trace does not contain objective values at the simplex. To get a trace of the simplex values, run optimize() with trace_simplex = true"
+  )
+  return [state.metadata["simplex_values"] for state in tr]
 end
 
-
-f_trace(r::OptimizationResults) = [ state.value for state in trace(r) ]
+f_trace(r::OptimizationResults) = [state.value for state in trace(r)]
 g_norm_trace(r::OptimizationResults) = error("g_norm_trace is not implemented for $(summary(r)).")
-g_norm_trace(r::MultivariateOptimizationResults) = [ state.g_norm for state in trace(r) ]
+g_norm_trace(r::MultivariateOptimizationResults) = [state.g_norm for state in trace(r)]
 
 f_calls(r::OptimizationResults) = r.f_calls
 f_calls(d) = first(d.f_calls)
@@ -71,21 +96,21 @@ g_calls(d) = first(d.df_calls)
 
 h_calls(r::OptimizationResults) = error("h_calls is not implemented for $(summary(r)).")
 h_calls(r::MultivariateOptimizationResults) = r.h_calls
-h_calls(d::Union{NonDifferentiable, OnceDifferentiable}) = 0
+h_calls(d::Union{NonDifferentiable,OnceDifferentiable}) = 0
 h_calls(d) = first(d.h_calls)
 h_calls(d::TwiceDifferentiableHV) = first(d.hv_calls)
 
 converged(r::UnivariateOptimizationResults) = r.converged
 function converged(r::MultivariateOptimizationResults)
-    conv_flags = r.x_converged || r.f_converged || r.g_converged
-    x_isfinite = isfinite(x_abschange(r)) || isnan(x_relchange(r))
-    f_isfinite = if r.iterations > 0
-            isfinite(f_abschange(r)) || isnan(f_relchange(r))
-        else
-            true
-        end
-    g_isfinite = isfinite(g_residual(r))
-    return conv_flags && all((x_isfinite, f_isfinite, g_isfinite))
+  conv_flags = r.x_converged || r.f_converged || r.g_converged
+  x_isfinite = isfinite(x_abschange(r)) || isnan(x_relchange(r))
+  f_isfinite = if r.iterations > 0
+    isfinite(f_abschange(r)) || isnan(f_relchange(r))
+  else
+    true
+  end
+  g_isfinite = isfinite(g_residual(r))
+  return conv_flags && all((x_isfinite, f_isfinite, g_isfinite))
 end
 x_converged(r::OptimizationResults) = error("x_converged is not implemented for $(summary(r)).")
 x_converged(r::MultivariateOptimizationResults) = r.x_converged
@@ -117,7 +142,6 @@ g_tol(r::OptimizationResults) = error("g_tol is not implemented for $(summary(r)
 g_tol(r::MultivariateOptimizationResults) = r.g_abstol
 g_residual(r::MultivariateOptimizationResults) = r.g_residual
 
-
 initial_state(r::OptimizationResults) = error("initial_state is not implemented for $(summary(r)).")
 initial_state(r::MultivariateOptimizationResults) = r.initial_x
 
@@ -132,7 +156,7 @@ abs_tol(r::OptimizationResults) = error("abs_tol is not implemented for $(summar
 abs_tol(r::UnivariateOptimizationResults) = r.abs_tol
 
 time_limit(r::MultivariateOptimizationResults) = r.time_limit
-time_run(  r::MultivariateOptimizationResults) = r.time_run
+time_run(r::MultivariateOptimizationResults) = r.time_run
 
 time_limit(r::OptimizationResults) = error("time_limit is not implemented for $(summary(r)).")
-time_run(  r::OptimizationResults) = error("time_run is not implemented for $(summary(r)).")
+time_run(r::OptimizationResults) = error("time_run is not implemented for $(summary(r)).")

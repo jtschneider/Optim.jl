@@ -19,14 +19,12 @@ ldiv!(out, M, A) = LinearAlgebra.ldiv!(out, M, A)
 dot(a, M, b) = LinearAlgebra.dot(a, M, b)
 dot(a, b) = LinearAlgebra.dot(a, b)
 
-
 #####################################################
 #  [0] Defaults and aliases for easier reading of the code
 #      these can also be over-written if necessary.
 
 # default preconditioner update
 precondprep!(P, x) = nothing
-
 
 #####################################################
 #  [1] Empty preconditioner = Identity
@@ -37,7 +35,6 @@ ldiv!(out, ::Nothing, A) = copyto!(out, A)
 
 # A' * P B
 dot(A, ::Nothing, B) = dot(A, B)
-
 
 #####################################################
 #  [2] Diagonal preconditioner
@@ -50,7 +47,7 @@ dot(A, ::Nothing, B) = dot(A, B)
 #      TODO: maybe implement this in Base?
 
 mutable struct InverseDiagonal
-   diag
+  diag::Any
 end
 ldiv!(out::AbstractArray, P::InverseDiagonal, A::AbstractArray) = copyto!(out, A .* P.diag)
 dot(A::AbstractArray, P::InverseDiagonal, B::Vector) = dot(A, B ./ P.diag)
